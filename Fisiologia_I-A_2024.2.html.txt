@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Game</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            display: none;
+            text-align: center;
+            width: 80%;
+            max-width: 600px;
+        }
+        #menu, .quiz-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .question {
+            font-size: 20px;
+            margin: 20px 0;
+        }
+        .answer {
+            padding: 10px;
+            margin: 5px;
+            background-color: #e0e0e0;
+            border: none;
+            border-radius: 5px;
+            width: 80%;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            color: black;
+        }
+        .smaller-text {
+            font-size: 1.4em; /* subtítulo no menu */
+        }
+        .answer:hover {
+            background-color: #ddd;
+        }
+        .result-message {
+            margin-top: 20px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .hidden {
+            display: none;
+        }
+        .transparent {
+            background-color: transparent;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Menu Inicial -->
+    <div id="menu" class="container">
+        <h1>Quiz Game</h1>
+        <h1 class="smaller-text">Fisiologia I-A</h1>
+        <h1 class="smaller-text">2024.2</h1>
+        <button onclick="startGame()">Começar Jogo</button>
+    </div>
+
+    <!-- Quiz -->
+    <div id="quiz" class="quiz-container container">
+        <div id="question-container">
+            <p class="question" id="question"></p>
+            <button class="answer" id="answer1" onclick="checkAnswer(1)"></button>
+            <button class="answer" id="answer2" onclick="checkAnswer(2)"></button>
+            <button class="answer" id="answer3" onclick="checkAnswer(3)"></button>
+            <button class="answer" id="answer4" onclick="checkAnswer(4)"></button>
+        </div>
+        <div id="feedback" class="hidden">
+            <p id="feedback-text"></p>
+            <button id="next-question" onclick="nextQuestion()">Próxima Pergunta</button>
+        </div>
+    </div>
+
+    <!-- Tela de Resultados -->
+    <div id="result" class="container">
+        <p id="final-score"></p>
+        <button onclick="restartGame()">Recomeçar Jogo</button>
+    </div>
+
+    <script>
+        let questions = [
+            {
+                question: "Qual estrutura é responsável por produzir os gametas masculinos?",
+                answers: ["Vesícula seminal", "Epidídimo", "Testículos", "Próstata"],
+                correctAnswer: 3,
+                explanation: "Os testículos são responsáveis pela produção dos gametas masculinos."
+            },
+            {
+                question: "Durante o ciclo menstrual, qual hormônio é responsável pelo pico que desencadeia a ovulação?",
+                answers: ["Estrogênio", "Progesterona", "Hormônio luteinizante (LH)", "Hormônio folículo-estimulante (FSH)"],
+                correctAnswer: 3,
+                explanation: "O hormônio luteinizante (LH) é responsável pelo pico que desencadeia a ovulação."
+            },
+            {
+                question: "No sistema reprodutor feminino, qual é a função primária do útero?",
+                answers: ["Produzir óvulos", "Acolher e nutrir o embrião em desenvolvimento", "Secretar hormônios sexuais", "Facilitar a produção de leite"],
+                correctAnswer: 2,
+                explanation: "A função primária do útero é acolher e nutrir o embrião em desenvolvimento."
+            },
+            {
+                question: "O espermatozoide é produzido nos túbulos seminíferos dos testículos.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 1,
+                explanation: "O espermatozoide é produzido nos túbulos seminíferos dos testículos pela divisão das espermatogônias."
+            },
+            {
+                question: "A progesterona é o principal hormônio responsável pelo desenvolvimento das características sexuais secundárias femininas.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 2,
+                explanation: "O estrogênio é o responsável pelas características sexuais secundárias femininas."
+            },
+            {
+                question: "A espermatogênese ocorre de maneira contínua ao longo da vida do homem, desde a puberdade.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 1,
+                explanation: "Diferente da produção de ovócitos, a produção de espermatozoides ocorre de forma contínua."
+            },
+            {
+                question: "A fecundação normalmente ocorre na cavidade uterina.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 2,
+                explanation: "A fecundação normalmente ocorre na tuba uterina."
+            },
+            {
+                question: "Os ovários não possuem função endócrina, apenas produzem gametas.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 2,
+                explanation: "Os ovários também secretam hormônios como estrogênio e progesterona."
+            },
+            {
+                question: "As tubas uterinas possuem cílios que ajudam a conduzir o óvulo em direção ao útero.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 1,
+                explanation: "As tubas uterinas possuem cílios que ajudam a conduzir o óvulo em direção ao útero."
+            },
+            {
+                question: "Qual é a função das células de Sertoli nos testículos?",
+                answers: ["Produzir testosterona", "Nutrir e sustentar as células germinativas durante a espermatogênese", "Secretar o líquido seminal", "Armazenar espermatozoides"],
+                correctAnswer: 2,
+                explanation: "As células de Sertoli nutrem e sustentam as células germinativas durante a espermatogênese."
+            },
+            {
+                question: "A espermatogênese ocorre durante toda a vida do homem e a ovogênese tem início na vida intrauterina da mulher.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 1,
+                explanation: "A espermatogênese ocorre durante toda a vida do homem, enquanto a ovogênese tem início na vida intrauterina da mulher."
+            },
+            {
+                question: "Qual a importância da zona pelúcida no processo de fecundação?",
+                answers: ["Impedir a entrada de mais de um espermatozoide no óvulo", "Nutrir o embrião nas primeiras semanas de desenvolvimento", "Facilitar a penetração do espermatozoide no ovócito", "Promover a implantação do blastocisto no útero"],
+                correctAnswer: 1,
+                explanation: "A zona pelúcida impede a entrada de mais de um espermatozoide no óvulo, garantindo a fecundação com apenas um espermatozoide."
+            },
+            {
+                question: "A função da progesterona no ciclo menstrual é aumentar os níveis de contração do útero para expulsar o óvulo.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 2,
+                explanation: "A função da progesterona é inibir as contrações uterinas para evitar o parto prematuro."
+            },
+            {
+                question: "O corpo lúteo é um órgão que produz principalmente progesterona e relaxina (causa relaxamento dos ossos da pélvis e evita parto prematuro)",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 1,
+                explanation: "O corpo lúteo é responsável pela produção de progesterona e relaxina, que ajudam na manutenção da gravidez."
+            },
+            {
+                question: "Qual a principal função das células de Leydig nos testículos?",
+                answers: ["Produzir espermatozoides", "Produzir testosterona", "Armazenar espermatozoides", "Transportar espermatozoides"],
+                correctAnswer: 2,
+                explanation: "As células de Leydig são responsáveis pela produção de testosterona nos testículos."
+            },
+            {
+                question: "Sobre a Progesterona é correto afirmar que:",
+                answers: ["A progesterona é o principal hormônio responsável pela manutenção da gravidez", "Provoca redução da liberação dos pulsos de GnRH, e assim inibe novas ovulações", "Inibe as contrações da parede uterina", "Todas as alternativas estão corretas"],
+                correctAnswer: 4,
+                explanation: "A progesterona tem um papel fundamental na manutenção da gravidez, inibindo a ovulação e as contrações uterinas."
+            },
+            {
+                question: "As células de Sertoli também produzem inibina, que afetam negativamente a produção de FSH, e assim regulam a atuação das próprias células de Sertoli.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 1,
+                explanation: "As células de Sertoli produzem inibina, que regula a produção de FSH e a função das próprias células de Sertoli."
+            },
+            {
+                question: "Qual a importância do eixo hipotálamo-hipófise-gonadal na regulação hormonal da reprodução masculina?",
+                answers: ["Coordena a produção de hormônios sexuais e a espermatogênese", "Regula apenas a produção de hormônios hipofisários", "Controla exclusivamente a função da tireoide", "Não possui relação com a reprodução masculina"],
+                correctAnswer: 1,
+                explanation: "O eixo hipotálamo-hipófise-gonadal é crucial para a coordenação da produção de hormônios sexuais e a espermatogênese."
+            },
+            {
+                question: "O GnRH (Hormônio Liberador de gonodotropinas) é liberado diretamente na corrente sanguínea, chegando posteriormente à hipófise, estimulando a produção de FSH e LH.",
+                answers: ["Verdadeiro", "Falso"],
+                correctAnswer: 2,
+                explanation: "O GnRH é liberado dentro do sistema porta hipotalâmico-hipofisiário, que transporta os hormônios para a hipófise anterior."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let answersDisabled = false;
+
+        // Função para iniciar o jogo
+        function startGame() {
+            document.getElementById('menu').style.display = 'none';
+            document.getElementById('quiz').style.display = 'block';
+            loadQuestion();
+        }
+
+        // Função para carregar a pergunta
+        function loadQuestion() {
+            const question = questions[currentQuestionIndex];
+            document.getElementById('question').textContent = question.question;
+            document.getElementById('answer1').textContent = question.answers[0];
+            document.getElementById('answer2').textContent = question.answers[1];
+            document.getElementById('answer3').textContent = question.answers[2];
+            document.getElementById('answer4').textContent = question.answers[3];
+
+            // Tornar caixas de resposta sem texto invisíveis e não clicáveis em perguntas de verdadeiro ou falso
+            if (question.answers.length === 2) {
+                document.getElementById('answer3').classList.add('transparent');
+                document.getElementById('answer4').classList.add('transparent');
+            } else {
+                document.getElementById('answer3').classList.remove('transparent');
+                document.getElementById('answer4').classList.remove('transparent');
+            }
+
+            // Reabilitar os botões de resposta
+            answersDisabled = false;
+
+            // Esconder feedback e próxima pergunta
+            document.getElementById('feedback').classList.add('hidden');
+            document.getElementById('next-question').classList.add('hidden');
+        }
+
+        // Função para verificar a resposta
+        function checkAnswer(answerIndex) {
+            if (answersDisabled) return;
+            const question = questions[currentQuestionIndex];
+            const correctAnswer = question.correctAnswer;
+
+            // Exibir feedback
+            document.getElementById('feedback').classList.remove('hidden');
+            document.getElementById('feedback-text').textContent = answerIndex === correctAnswer
+                ? "Resposta Correta! " + question.explanation
+                : "Resposta Errada! " + question.explanation;
+
+            // Se a resposta estiver correta, incrementar a pontuação
+            if (answerIndex === correctAnswer) {
+                score++;
+            }
+
+            // Desabilitar os botões de resposta
+            answersDisabled = true;
+
+            // Mostrar o botão "Próxima Pergunta"
+            document.getElementById('next-question').classList.remove('hidden');
+        }
+
+        // Função para ir para a próxima pergunta
+        function nextQuestion() {
+            currentQuestionIndex++;
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        // Função para exibir o resultado final
+        function showResult() {
+            document.getElementById('quiz').style.display = 'none';
+            document.getElementById('result').style.display = 'block';
+            document.getElementById('final-score').textContent = "Você fez " + score + " pontos!";
+        }
+
+        // Função para reiniciar o jogo
+        function restartGame() {
+            currentQuestionIndex = 0;
+            score = 0;
+            document.getElementById('result').style.display = 'none';
+            document.getElementById('menu').style.display = 'block';
+        }
+    </script>
+</body>
+</html>
